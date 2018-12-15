@@ -69,17 +69,14 @@ test(int n, int d, char const *s, struct string_map f) {
   return ret;
 }
 
-static char const *const fizz_str = "Fizz";
-static char const *const buzz_str = "Buzz";
-
 static struct string_map
 fizz(int n, struct string_map f) {
-  return test(n, 3, fizz_str, f);
+  return test(n, 3, "Fizz", f);
 }
 
 static struct string_map
 buzz(int n, struct string_map f) {
-  return test(n, 5, buzz_str, f);
+  return test(n, 5, "Buzz", f);
 }
 
 static char const *
