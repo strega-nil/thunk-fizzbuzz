@@ -4,17 +4,13 @@
 #include <stdlib.h>
 #include <string.h>
 
-struct thunk {
+struct string_map {
   void *data;
-  char const *(*func)();
-};
-
-struct fizzbuzz_data {
-  int n;
+  char const *(*func)(void *, char const *);
 };
 
 struct test_func_data {
-  struct thunk next_to_call;
+  struct string_map next_to_call;
   char const *s;
 };
 
@@ -42,7 +38,7 @@ concat(char const *s1, char const *s2) {
 static char const *
 test_func(void *data, char const *_s) {
   struct test_func_data *tfdata;
-  struct thunk *call;
+  struct string_map *call;
   char const *ret_of_call;
 
   (void)_s;
@@ -53,25 +49,22 @@ test_func(void *data, char const *_s) {
   return concat(tfdata->s, ret_of_call);
 }
 
-static struct thunk
-test(void *data, int d, char const *s, struct thunk f) {
-  struct fizzbuzz_data *fzdata;
-  struct thunk ret;
+static struct string_map
+test(int n, int d, char const *s, struct string_map f) {
+  struct string_map ret;
 
-  fzdata = data;
-  if (fzdata->n % d == 0)
-    {
-      struct test_func_data *tfdata;
+  if (n % d == 0) {
+    struct test_func_data *tfdata;
 
-      tfdata = malloc(sizeof *tfdata);
-      tfdata->next_to_call = f;
-      tfdata->s = s;
+    tfdata = malloc(sizeof *tfdata);
+    tfdata->next_to_call = f;
+    tfdata->s = s;
 
-      ret.data = tfdata;
-      ret.func = test_func;
-    }
-  else
+    ret.data = tfdata;
+    ret.func = test_func;
+  } else {
     ret = f;
+  }
 
   return ret;
 }
@@ -79,14 +72,14 @@ test(void *data, int d, char const *s, struct thunk f) {
 static char const *const fizz_str = "Fizz";
 static char const *const buzz_str = "Buzz";
 
-static struct thunk
-fizz(void *data, struct thunk f) {
-  return test(data, 3, fizz_str, f);
+static struct string_map
+fizz(int n, struct string_map f) {
+  return test(n, 3, fizz_str, f);
 }
 
-static struct thunk
-buzz(void *data, struct thunk f) {
-  return test(data, 5, buzz_str, f);
+static struct string_map
+buzz(int n, struct string_map f) {
+  return test(n, 5, buzz_str, f);
 }
 
 static char const *
@@ -95,7 +88,7 @@ identity_func(void *data, char const *x) {
   return x;
 }
 
-static struct thunk const identity = {NULL, identity_func};
+static struct string_map const identity = {NULL, identity_func};
 
 static char *
 string_of_int(int n) {
@@ -109,11 +102,9 @@ string_of_int(int n) {
 FZ_EXPORT
 char const *
 fizzbuzz(int n) {
-  struct fizzbuzz_data fzdata;
-  struct thunk tmp;
+  struct string_map tmp;
 
-  fzdata.n = n;
-  tmp = buzz(&fzdata, identity);
-  tmp = fizz(&fzdata, tmp);
+  tmp = buzz(n, identity);
+  tmp = fizz(n, tmp);
   return tmp.func(tmp.data, string_of_int(n));
 }
